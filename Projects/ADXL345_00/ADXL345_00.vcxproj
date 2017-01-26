@@ -84,6 +84,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\libraries\ADXL345;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\libraries\Wire\src;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\libraries\Wire\src\utility;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\libraries;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\libraries;C:\Users\bcare\Documents\Arduino\libraries;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\cores\arduino;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\variants\standard;$(ProjectDir)..\ADXL345_00;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\tools\avr\avr\include\;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\tools\avr\avr\include\avr\;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\tools\avr\lib\gcc\avr\4.8.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

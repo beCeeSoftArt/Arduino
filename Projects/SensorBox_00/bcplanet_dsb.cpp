@@ -9,19 +9,12 @@
 /// </summary>
 bcplanet_dsb::bcplanet_dsb()
 {
-	MQ135_DEFAULTPPM = 404; //default ppm of CO2 for calibration
-	MQ135_DEFAULTRO = 41763; //default Ro for MQ135_DEFAULTPPM ppm of CO2
-	MQ135_SCALINGFACTOR = 116.6020682; //CO2 gas value
-	MQ135_EXPONENT = -2.769034857; //CO2 gas value
-	MQ135_MAXRSRO = 2.428; //for CO2
-	MQ135_MINRSRO = 0.358; //for CO2
-
-	ADC_REFRES = 1024; //reference resolution used for conversions
-
+	iRange = 100;
+	
+	// Initialize PIR
 	pinMode(PIR_PIN, INPUT);
 	pinMode(13, OUTPUT);
 	digitalWrite(PIR_PIN, LOW);
-	//ds = OneWire(ONEWIRE_PIN);
 }
 
 /// <summary>
@@ -34,10 +27,10 @@ void bcplanet_dsb::SetOneWireReference(OneWire* oneWireRef)
 }
 
 /// <summary>
-/// Writes the temperature DS18B20.
+/// Writes the temperature DS18B20. Call this method for 
+/// every connected device to OneWire
 /// </summary>
-/// <param name="sensorId">The sensor identifier.</param>
-void bcplanet_dsb::WriteTemperatureDS18B20(int sensorId)
+void bcplanet_dsb::WriteTemperatureDS18B20()
 {
 	byte i;
 	byte present = 0;
@@ -48,20 +41,22 @@ void bcplanet_dsb::WriteTemperatureDS18B20(int sensorId)
 
 	if (!oneWire->search(addr))
 	{
-		// Serial.println("No more addresses.");
+		//Serial.println("No more addresses.");
 		//Serial.println();
 		oneWire->reset_search();
-		delay(250);
+		//delay(250);
 		return;
 	}
+	int addressId = 0;
+	//Serial.print("ROM =");
+	for (i = 0; i < 8; i++)
+	{
+		/*if (i < 7)
+			Serial.write(' ');
+		Serial.print(addr[i], HEX);*/
 
-	// Serial.print("ROM =");
-	// for (i = 0; i < 8; i++)
-	// {
-		// if (i < 7)
-			// 	Serial.write(' ');
-			// 	Serial.print(addr[i], HEX);
-			// }
+		addressId += addr[i];
+	}
 
 	if (OneWire::crc8(addr, 7) != addr[7])
 	{
@@ -86,26 +81,32 @@ void bcplanet_dsb::WriteTemperatureDS18B20(int sensorId)
 		type_s = 0;
 		break;
 	default:
-		WriteError(sensorId, 0, "Device is not a DS18x20 family device.");
+		WriteError(addressId, 0, "Device is not a DS18x20 family device.");
 		//Serial.print("\tDevice is not a DS18x20 family device.");
 		return;
 	}
 
+	// Reset
 	oneWire->reset();
+	// select address
 	oneWire->select(addr);
-	oneWire->write(0x44, 1);        // start conversion, with parasite power on at the end
-
-	delay(1000);     // maybe 750ms is enough, maybe not
-					 // we might do a ds.depower() here, but the reset will take care of it.
-
+	// start conversion, with parasite power on at the end
+	oneWire->write(0x44, 1);        
+	// maybe 750ms is enough, maybe not
+	delay(750);    
+	// we might do a ds.depower() here, but the reset will take care of it.
 	present = oneWire->reset();
+	// select address
 	oneWire->select(addr);
-	oneWire->write(0xBE);         // Read Scratchpad
+	// Read Scratchpad
+	oneWire->write(0xBE);         
 
-								  // Serial.print("\tData = ");
-								  // Serial.print(present, HEX);
-								  // Serial.print(" ");
-	for (i = 0; i < 9; i++) {           // we need 9 bytes
+	// Serial.print("\tData = ");
+	// Serial.print(present, HEX);
+	// Serial.print(" ");
+	for (i = 0; i < 9; i++) 
+	{           
+		// we need 9 bytes
 		data[i] = oneWire->read();
 		// Serial.print(data[i], HEX);
 		// Serial.print(" ");
@@ -126,10 +127,10 @@ void bcplanet_dsb::WriteTemperatureDS18B20(int sensorId)
 		{
 			// "count remain" gives full 12 bit resolution
 			raw = (raw & 0xFFF0) + 12 - data[6];
-			// 	Serial.print("\tResolution = 12 bit");
+			//Serial.print("\tResolution = 12 bit");
 		}
-		// else
-			// 	Serial.print("\tResolution = 9 bit");
+		//else
+		//	Serial.print("\tResolution = 9 bit");
 	}
 	else
 	{
@@ -137,26 +138,29 @@ void bcplanet_dsb::WriteTemperatureDS18B20(int sensorId)
 		// at lower res, the low bits are undefined, so let's zero them
 		if (cfg == 0x00)
 		{
-			raw = raw & ~7;  // 9 bit resolution, 93.75 ms
-							 // 	Serial.print("\tResolution = 9 bit");
+			// 9 bit resolution, 93.75 ms
+			raw = raw & ~7;  
+			//Serial.print("\tResolution = 9 bit");
 		}
 		else if (cfg == 0x20)
 		{
-			raw = raw & ~3; // 10 bit res, 187.5 ms
-							// 	Serial.print("\tResolution = 10 bit");
+			// 10 bit res, 187.5 ms
+			raw = raw & ~3; 
+			//Serial.print("\tResolution = 10 bit");
 		}
 		else if (cfg == 0x40)
 		{
-			raw = raw & ~1; // 11 bit res, 375 ms
-							// 	Serial.print("\tResolution = 11 bit");
+			// 11 bit res, 375 ms
+			raw = raw & ~1; 
+			//Serial.print("\tResolution = 11 bit");
 		}
-		// else
-		// 	Serial.print("\tResolution = 12 bit");
-		// default is 12 bit resolution, 750 ms conversion time
+		//else
+		//	// default is 12 bit resolution, 750 ms conversion time
+		//	Serial.print("\tResolution = 12 bit");
 	}
 	celsius = static_cast<float>(raw) / 16.0;
 	fahrenheit = celsius * 1.8 + 32.0;
-	WriteTemperatureSentence(sensorId, celsius);
+	WriteTemperatureSentence(addressId, celsius);
 	/*Serial.print("\tTemperature = ");
 	Serial.print(celsius);
 	Serial.print(" Celsius, ");
@@ -165,7 +169,7 @@ void bcplanet_dsb::WriteTemperatureDS18B20(int sensorId)
 }
 
 /// <summary>
-/// Prints the sentence.
+/// Writes the NMEA sentence to serial port.
 /// </summary>
 void bcplanet_dsb::PrintSentence()
 {
@@ -322,12 +326,12 @@ void bcplanet_dsb::WriteAnalogPlain(int sensorId)
 /// <summary>
 /// Writes the humidity digital.
 /// </summary>
-/// <param name="iDigitalPort">The i digital port.</param>
+/// <param name="digitalPort">The i digital port.</param>
 /// <param name="sensorValue">The sensor value.</param>
 void bcplanet_dsb::WriteHumiditySentence(int sensorId, float sensorValue)
 {
 	char tmp1[20];
-	dtostrf(sensorValue, 3, 5, tmp1);
+	dtostrf(sensorValue, 3, 2, tmp1);
 	sprintf(m_cLineTemp, "$BCHUMIDITY,%i,%s,RH*",
 		sensorId,
 		tmp1);
@@ -337,7 +341,7 @@ void bcplanet_dsb::WriteHumiditySentence(int sensorId, float sensorValue)
 /// <summary>
 /// Writes the temperature digital.
 /// </summary>
-/// <param name="iDigitalPort">The i digital port.</param>
+/// <param name="digitalPort">The digital port.</param>
 /// <param name="sensorValue">The sensor value.</param>
 void bcplanet_dsb::WriteTemperatureSentence(int sensorId, float sensorValue)
 {
@@ -352,30 +356,49 @@ void bcplanet_dsb::WriteTemperatureSentence(int sensorId, float sensorValue)
 /// <summary>
 /// Writes the humidity temperature of DHT11.
 /// </summary>
-/// <param name="iDigitalPort">The i digital port.</param>
-void bcplanet_dsb::WriteHumidityTemperatureDHT11(int iDigitalPort)
+/// <param name="digitalPort">The sensor Type 11=DHT11, 21=DHT21, 22=DHT22.</param>
+/// <param name="sensorType">The sensor Type 11=DHT11, 21=DHT21, 22=DHT22.</param>
+/// <param name="offset">The correction temperature.</param>
+/// <param name="offset">The correction humidity.</param>
+void bcplanet_dsb::WriteHumidityTemperatureDHT(int digitalPort, int sensorType, double correctionT, double correctionRH)
 {
-	int chk = DHT.read11(iDigitalPort);//read the value returned from sensor
+	int chk = 0;
+	// Read the value returned from sensor
+	switch (sensorType)
+	{
+	case 11:
+		chk = DHT.read11(digitalPort);
+		break;
+	case 21:
+		chk = DHT.read21(digitalPort);
+		break;
+	case 22:
+		chk = DHT.read22(digitalPort);
+		break;
+	}
 	char tmp1[20];
 	switch (chk)
 	{
 	case DHTLIB_OK:
-
-		WriteTemperatureSentence(iDigitalPort, DHT.temperature);
-		WriteHumiditySentence(iDigitalPort, DHT.humidity);
-
+		WriteTemperatureSentence(digitalPort, DHT.temperature + correctionT);
+		if (DHT.humidity + correctionRH < 0)
+			WriteHumiditySentence(digitalPort, 0);
+		else if (DHT.humidity + correctionRH > 100)
+			WriteHumiditySentence(digitalPort, 100);
+		else
+			WriteHumiditySentence(digitalPort, DHT.humidity + correctionRH);
 		break;
 	case DHTLIB_ERROR_CHECKSUM:
 		//Serial.print("Checksum error,\t"); 
-		WriteError(iDigitalPort, 0, "Checksum error");
+		WriteError(digitalPort, 0, "Checksum error");
 		break;
 	case DHTLIB_ERROR_TIMEOUT:
 		//Serial.print("Time out error,\t"); 
-		WriteError(iDigitalPort, 0, "Time out humidity/temperature sensor error");
+		WriteError(digitalPort, 0, "Time out humidity / temperature sensor error");
 		break;
 	default:
 		//Serial.print("Unknown error,\t"); 
-		WriteError(iDigitalPort, 0, "Unknown humidity/temperature sensor error");
+		WriteError(digitalPort, 0, "Unknown humidity/temperature sensor error");
 		break;
 	}
 }
@@ -407,33 +430,78 @@ double bcplanet_dsb::mq135_getppm(long resvalue, long ro)
 	double ret = 0;
 	double validinterval = 0;
 	validinterval = resvalue / static_cast<double>(ro);
-	//if (validinterval<MQ135_MAXRSRO && validinterval>MQ135_MINRSRO) {
 	ret = static_cast<double>(MQ135_SCALINGFACTOR) * pow((static_cast<double>(resvalue) / ro), MQ135_EXPONENT);
-	//}
 	return ret;
 }
 
-void bcplanet_dsb::WriteGas(int sensorId, int analog, double correction)
+/// <summary>
+/// Writes PIR motion sensor state
+/// </summary>
+/// <param name="sensorId">The sensor id.</param>
+/// <param name="analog">The analog port.</param>
+/// <param name="correction">The correctur value.</param>
+/// <param name="pGasName">The name of the measured gas. CO2 / NH3 are supported</param>
+void bcplanet_dsb::WriteGas(int sensorId, int analog, double correction, char* pGasName)
 {
 	long sum = 0;
-	for (auto i = 0; i < 100; i++)
-	{
+	long res = 0;
+	long mq135_ro = 0;
+	double d = 0;
+	
+	// Make some measures
+	for (auto i = 0; i < iRange; i++)
 		sum = sum + analogRead(analog);
+	// Then calculate the average
+	auto adc = static_cast<int>(static_cast<double>(sum) / 100.0);
+	
+	if (strcmp_P(pGasName, "CO2"))
+	{
+		// default ppm of CO2 for calibration
+		MQ135_DEFAULTPPM = 406;
+		//default Ro for MQ135_DEFAULTPPM ppm of CO2
+		MQ135_DEFAULTRO = 41763;
+		//CO2 gas value scaling factor
+		MQ135_SCALINGFACTOR = 116.6020682; // 56.0820; 
+		//CO2 gas value
+		MQ135_EXPONENT = -2.769034857; // -5.9603; 
+		// Reference resolution used for conversions
+		ADC_REFRES = 1024;
+
+		// calculated resistence depends on the sensor pulldown resistor
+		res = adc_getresistence(adc, MQ135_PULLDOWNRES); // 26954;
+		// get ro
+		mq135_ro = mq135_getro(res, MQ135_DEFAULTPPM);
+		// convert to ppm (using default ro)
+		d = mq135_getppm(res, MQ135_DEFAULTRO);
 	}
-	int adc = (int)((double)sum / 100.0);
+	else if (strcmp_P(pGasName, "NH3"))
+	{
+		// default ppm of NH3 for calibration
+		MQ135_DEFAULTPPM = 100;
+		// default Ro for MQ135_DEFAULTPPM ppm of NH3
+		MQ135_DEFAULTRO = 108251;
+		// NH3 gas value scaling factor
+		MQ135_SCALINGFACTOR = 37.58805473;
+		// NH3 gas value
+		MQ135_EXPONENT = -3.235365807;
+		// Reference resolution used for conversions
+		ADC_REFRES = 1024;
 
-	MQ135_DEFAULTPPM = 406;// 392; //default ppm of CO2 for calibration
-	MQ135_DEFAULTRO = 41763; //default Ro for MQ135_DEFAULTPPM ppm of CO2
-	MQ135_SCALINGFACTOR = 116.6020682; // 56.0820; //CO2 gas value
-	MQ135_EXPONENT = -2.769034857; // -5.9603; //CO2 gas value
-	ADC_REFRES = 1024;
+		// calculated resistence depends on the sensor pulldown resistor
+		res = adc_getresistence(adc, MQ135_PULLDOWNRES);
+		// get ro
+		mq135_ro = mq135_getro(res, MQ135_DEFAULTPPM);
+		// convert to ppm (using default ro)
+		d = mq135_getppm(res, MQ135_DEFAULTRO);
+	}
+	else
+		// Not supported gas
+		return;
 
-	//calculated resistence depends on the sensor pulldown resistor
-	long res = adc_getresistence(adc, MQ135_PULLDOWNRES); // 26954;
-															  //get ro
-	long mq135_ro = mq135_getro(res, MQ135_DEFAULTPPM);
-	//convert to ppm (using default ro)
-	double d = mq135_getppm(res, MQ135_DEFAULTRO);
+	// apply correction
+	d = d + correction;
+	if (d < 0)
+		d = 0.0;
 
 	char tmp1[20];
 	char tmp2[20];
@@ -442,17 +510,22 @@ void bcplanet_dsb::WriteGas(int sensorId, int analog, double correction)
 	itoa(adc, tmp1, 10);
 	ltoa(res, tmp2, 10);
 	ltoa(mq135_ro, tmp3, 10);
-	dtostrf(d + correction, 3, 5, tmp4);
+	dtostrf(d, 3, 5, tmp4);
 
-	sprintf(m_cLineTemp, "$BCGAS,%i,%s,%s,%s,%s,ppm*",
+	sprintf(m_cLineTemp, "$BCGAS,%i,%s,%s,%s,%s,ppm,%s*",
 		sensorId,
 		tmp1,
 		tmp2,
 		tmp3,
-		tmp4);
+		tmp4,
+		pGasName);
 	PrintSentence();
 }
 
+/// <summary>
+/// Writes PIR motion sensor state
+/// </summary>
+/// <param name="analogId">The digital port.</param>
 void bcplanet_dsb::WritePir(int sensorId)
 {
 	if (digitalRead(PIR_PIN) == HIGH) 
@@ -498,4 +571,73 @@ void bcplanet_dsb::WritePir(int sensorId)
 			delay(50);
 		}
 	}
+
+
+}	
+/// <summary>
+/// Starts the elapsed time.
+/// </summary>
+void bcplanet_dsb::StartElapsedTime()
+{
+	oStopWatch.Reset();
+	oStopWatch.Start();
 }
+
+/// <summary>
+/// Writes the elapsed time.
+/// </summary>
+void bcplanet_dsb::WriteElapsedTime(int sensorId)
+{
+	oStopWatch.Stop();
+
+	switch (oStopWatch.Resolution())
+	{
+	case StopWatch::MICROS:
+		sprintf(m_cLineTemp, "$BCELTIME,%i,%i,%s*", sensorId, static_cast<int>(oStopWatch.Elapsed()), "micro");
+		break;
+	case StopWatch::MILLIS:
+		sprintf(m_cLineTemp, "$BCELTIME,%i,%i,%s*", sensorId, static_cast<int>(oStopWatch.Elapsed()), "ms");
+		break;
+	case StopWatch::SECONDS:
+		sprintf(m_cLineTemp, "$BCELTIME,%i,%i,%s*", sensorId, static_cast<int>(oStopWatch.Elapsed()), "s");
+		break;
+	default:
+		sprintf(m_cLineTemp, "$BCELTIME,%i,%i,%s*", sensorId, static_cast<int>(oStopWatch.Elapsed()), "Unknown");
+		break;
+	}
+	PrintSentence();
+}
+
+/// <summary>
+/// Gets the humidity.
+/// Works with HIH-4030/31 humidity sensor 
+/// </summary>
+/// <param name="analogId">The analog port.</param>
+/// <returns></returns>
+float bcplanet_dsb::GetHumidity(int analogId)
+{
+	float fHumidity = 0;
+	// Average Over Measurements 
+	for (int iIndex = 0; iIndex < iRange; iIndex++)
+	{
+		fHumidity = fHumidity + (ConvertToVoltage(analogRead(analogId)) - 0.958) / 0.03068;
+	}
+	fHumidity = fHumidity / static_cast<float>(iRange);
+	return(fHumidity);
+}
+
+/// <summary>
+/// Writes the humidity.
+/// </summary>
+/// <param name="analogId">The analog port.</param>
+/// <param name="correction">The correction.</param>
+void bcplanet_dsb::WriteHumidityHIH4030(int analogId, double correction)
+{
+	char tmp[10];
+	dtostrf(GetHumidity(analogId) + correction, 1, 2, tmp);
+
+	sprintf(m_cLineTemp, "$BCHUMIDITY,%i,%s,%%RH*", analogId, tmp);
+	PrintSentence();
+}
+
+

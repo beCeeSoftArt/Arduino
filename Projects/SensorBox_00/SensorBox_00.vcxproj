@@ -74,6 +74,9 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\libraries\OneWire;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\libraries\Dht;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\libraries\StopWatch;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\libraries;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\libraries;C:\Users\bcare\Documents\Arduino\libraries;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\cores\arduino;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\variants\standard;$(ProjectDir)..\SensorBox_00;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\tools\avr\avr\include\;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\tools\avr\avr\include\avr\;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\tools\avr\lib\gcc\avr\4.8.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>$(ProjectDir)__vm\.SensorBox_00.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <PreprocessorDefinitions>__AVR_ATmega328p__;__AVR_ATmega328P__;F_CPU=16000000L;ARDUINO=10608;ARDUINO_AVR_UNO;ARDUINO_ARCH_AVR;__cplusplus=201103L;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -110,8 +113,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="SensorBox_00.ino">
+      <FileType>CppCode</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="bcplanet_dsb.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="__vm\.SensorBox_00.vsarduino.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="bcplanet_dsb.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties arduino.upload.port="COM7" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>

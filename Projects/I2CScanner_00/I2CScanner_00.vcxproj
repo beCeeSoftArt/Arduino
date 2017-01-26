@@ -84,7 +84,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>D:\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\libraries\Wire\src;D:\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\libraries\Wire\src\utility;D:\__!_SOURCE.C\ARDUINO\arduino-1.6.8\libraries;D:\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\libraries;C:\Users\bcare\Documents\Arduino\libraries;D:\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\cores\arduino;D:\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\variants\standard;D:\REPOSITORY\Arduino\Projects\I2CScanner_00;D:\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\cores\arduino;D:\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\variants\standard;D:\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\libraries\Wire\src;D:\__!_SOURCE.C\ARDUINO\arduino-1.6.8\libraries;D:\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\libraries;C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\gtrweqbx.zxo\Micro Platforms\default\debuggers;C:\Users\bcare\Documents\Arduino\libraries;D:\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\tools\avr/avr/include/;D:\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\tools\avr//avr/include/avr/;D:\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\tools\avr/lib\gcc\avr\4.8.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\libraries\Wire\src;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\libraries\Wire\src\utility;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\libraries;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\libraries;C:\Users\bcare\Documents\Arduino\libraries;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\cores\arduino;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\variants\standard;$(ProjectDir)..\I2CScanner_00;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\tools\avr\avr\include\;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\tools\avr\avr\include\avr\;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\tools\avr\lib\gcc\avr\4.8.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>D:\REPOSITORY\Arduino\Projects\I2CScanner_00\__vm\.I2CScanner_00.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <PreprocessorDefinitions>__AVR_ATmega328p__;__AVR_ATmega328P__;F_CPU=16000000L;ARDUINO=10608;ARDUINO_AVR_UNO;ARDUINO_ARCH_AVR;__cplusplus=201103L;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -128,7 +128,7 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties arduino.upload.port="COM14" />
+      <UserProperties arduino.upload.port="COM6" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>
