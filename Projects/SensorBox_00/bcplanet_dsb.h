@@ -100,7 +100,7 @@ protected:
 
 	// Get gas sensor resistence value
 	long adc_getresistence(int adcread, int adcbalanceresistor);
-	// Get gas sensor Ro  value
+	// Get gas sensor Ro value
 	long mq135_getro(long resvalue, double ppm);
 	// Calculate ppm value
 	double mq135_getppm(long resvalue, long ro);

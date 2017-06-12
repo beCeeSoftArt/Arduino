@@ -427,15 +427,11 @@ long bcplanet_dsb::mq135_getro(long resvalue, double ppm)
 */
 double bcplanet_dsb::mq135_getppm(long resvalue, long ro)
 {
-	double ret = 0;
-	double validinterval = 0;
-	validinterval = resvalue / static_cast<double>(ro);
-	ret = static_cast<double>(MQ135_SCALINGFACTOR) * pow((static_cast<double>(resvalue) / ro), MQ135_EXPONENT);
-	return ret;
+	return static_cast<double>(MQ135_SCALINGFACTOR) * pow((static_cast<double>(resvalue) / ro), MQ135_EXPONENT);
 }
 
 /// <summary>
-/// Writes PIR motion sensor state
+/// Writes MQ135 sensor data
 /// </summary>
 /// <param name="sensorId">The sensor id.</param>
 /// <param name="analog">The analog port.</param>

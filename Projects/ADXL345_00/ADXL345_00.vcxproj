@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -27,26 +27,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -84,7 +84,9 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\libraries\ADXL345;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\libraries\Wire\src;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\libraries\Wire\src\utility;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\libraries;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\libraries;C:\Users\bcare\Documents\Arduino\libraries;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\cores\arduino;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\arduino\avr\variants\standard;$(ProjectDir)..\ADXL345_00;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\tools\avr\avr\include\;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\tools\avr\avr\include\avr\;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.6.8\hardware\tools\avr\lib\gcc\avr\4.8.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.8.1\libraries\ADXL345;C:\Users\bcare\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\libraries\Wire\src;C:\Users\bcare\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\libraries\Wire\src\utility;$(ProjectDir)..\..\..\..\__!_SOURCE.C\ARDUINO\arduino-1.8.1\libraries;C:\Users\bcare\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\libraries;$(ProjectDir)..\..\..\..\__!_SOURCE.C\AIMB\libraries;C:\Users\bcare\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino;C:\Users\bcare\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\variants\mega;$(ProjectDir)..\ADXL345_00;C:\Users\bcare\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.4-arduino2\avr\include\;C:\Users\bcare\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.4-arduino2\avr\include\avr\;C:\Users\bcare\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.4-arduino2\lib\gcc\avr\4.8.1\include;C:\Users\bcare\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.4-arduino2\lib\gcc\avr\4.9.2\include;C:\Users\bcare\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.4-arduino2\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>$(ProjectDir)__vm\.ADXL345_00.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <PreprocessorDefinitions>__AVR_ATmega2560__;F_CPU=16000000L;ARDUINO=10801;ARDUINO_AVR_ADK;ARDUINO_ARCH_AVR;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
