@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding ="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
+  <PropertyGroup Label="Globals" >
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{7ba2f7b9-7167-444a-919a-cd0445a761bc}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Base64.cpp" />
+<ClCompile Include="$(MSBuildThisFileDirectory)MD5.c" />
+<ClCompile Include="$(MSBuildThisFileDirectory)sha1.cpp" />
+<ClCompile Include="$(MSBuildThisFileDirectory)WebSocketClient.cpp" />
+<ClCompile Include="$(MSBuildThisFileDirectory)WebSocketServer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Base64.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)global.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)MD5.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)sha1.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)WebSocketClient.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)WebSocketServer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="$(MSBuildThisFileDirectory)library.properties" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.md" />
+  </ItemGroup>
+</Project>

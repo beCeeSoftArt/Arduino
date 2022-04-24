@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32002.261
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "STEPPER_2E_00_ACCEL_01", "STEPPER_2E_00_ACCEL_01.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Wire-1.0", "Libraries\Wire\1.0\Wire\Wire-1.0.vcxitems", "{136F2FD2-644B-4E39-B087-AAB8522C4ACD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ULN2003_StepperMotor-0.0.0", "Libraries\ULN2003_StepperMotor\0.0.0\ULN2003_StepperMotor\ULN2003_StepperMotor-0.0.0.vcxitems", "{91172DFF-3721-4D3D-85A4-54FAFBBD64D0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LIDARLite_v3_Arduino_Library-1.0.3", "Libraries\LIDARLite_v3_Arduino_Library\1.0.3\LIDARLite_v3_Arduino_Library\LIDARLite_v3_Arduino_Library-1.0.3.vcxitems", "{D022E8E8-1D02-46C2-AA47-BAE3D7103907}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Libraries\Wire\1.0\Wire\Wire-1.0.vcxitems*{136f2fd2-644b-4e39-b087-aab8522c4acd}*SharedItemsImports = 9
+		Libraries\ULN2003_StepperMotor\0.0.0\ULN2003_StepperMotor\ULN2003_StepperMotor-0.0.0.vcxitems*{91172dff-3721-4d3d-85a4-54fafbbd64d0}*SharedItemsImports = 9
+		Libraries\LIDARLite_v3_Arduino_Library\1.0.3\LIDARLite_v3_Arduino_Library\LIDARLite_v3_Arduino_Library-1.0.3.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		Libraries\ULN2003_StepperMotor\0.0.0\ULN2003_StepperMotor\ULN2003_StepperMotor-0.0.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		Libraries\Wire\1.0\Wire\Wire-1.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		Libraries\LIDARLite_v3_Arduino_Library\1.0.3\LIDARLite_v3_Arduino_Library\LIDARLite_v3_Arduino_Library-1.0.3.vcxitems*{d022e8e8-1d02-46c2-aa47-bae3d7103907}*SharedItemsImports = 9
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.ActiveCfg = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.Build.0 = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.ActiveCfg = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CA19F1EE-0E9C-474B-B097-18181AD18BB4}
+	EndGlobalSection
+EndGlobal

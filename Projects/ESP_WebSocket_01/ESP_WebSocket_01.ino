@@ -1,0 +1,304 @@
+#include <WiFiServerSecureBearSSL.h>
+#include <ESP8266WiFiType.h>
+#include <ESP8266WiFiGratuitous.h>
+#include <ESP8266WiFiGeneric.h>
+#include <malloc.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#include <Arduino.h>
+
+#include <ESP8266WiFi.h>
+#include <ESP8266WiFiMulti.h>
+
+#include <WebSocketsClient.h>
+
+#include <Hash.h>
+
+const char* ssid = "MyWlanSsid";
+const char* password = "MyStolenPassword";
+bool isConnected = false;
+bool isLedOn = false;
+
+ESP8266WiFiMulti WiFiMulti;
+WebSocketsClient webSocket;
+
+#define USE_SERIAL Serial
+#define MESSAGE_INTERVAL 2000
+#define HEARTBEAT_INTERVAL 15000
+uint64_t messageTimestamp = 0;
+uint64_t heartbeatTimestamp = 0;
+
+void SendString(String text);
+int CreateCheckSum(String nmeaSentence);
+String CreateCheckSumHex(String nmeaSentence);
+void HandleMessage(String message);
+void Set3StateLed(bool red, bool green, bool blue);
+
+void webSocketEvent(WStype_t type, uint8_t* payload, size_t length)
+{
+    switch (type)
+    {
+    case WStype_DISCONNECTED:
+
+        USE_SERIAL.printf("[WSC] Disconnected!\n");
+        isConnected = false;
+        Set3StateLed(true, false, false);
+
+        break;
+    case WStype_CONNECTED:
+
+        USE_SERIAL.printf("\n[WSC] Connected to url: %s\n", payload);
+        isConnected = true;
+        Set3StateLed(false, true, false);
+        
+        break;
+    case WStype_TEXT:
+    {
+        auto message = String(reinterpret_cast<char*>(payload));
+        if (message.startsWith("$BCLIFESIGN"))
+        {
+            Set3StateLed(true, true, true);
+
+            if (isLedOn)
+                digitalWrite(LED_BUILTIN, HIGH);
+            else
+                digitalWrite(LED_BUILTIN, LOW);
+            isLedOn = !isLedOn;
+            USE_SERIAL.printf("[RECEIVE_TXT] LifeSign %s Size: %u\n", message.c_str(), length);
+
+            delay(1000);
+            Set3StateLed(false, true, false);
+        }
+        else
+        {
+           USE_SERIAL.printf("[RECEIVE_TXT] %s Size: %u\n", message.c_str(), length);
+           HandleMessage(message);
+        }
+    }
+        break;
+    case WStype_BIN:
+    {
+        auto message = String(reinterpret_cast<char*>(payload));
+
+        if (message.startsWith("$BCLIFESIGN"))
+        {
+            Set3StateLed(true, true, true);
+
+            if (isLedOn)
+                digitalWrite(LED_BUILTIN, HIGH);
+            else
+                digitalWrite(LED_BUILTIN, LOW);
+            isLedOn = !isLedOn;
+
+            USE_SERIAL.printf("[RECEIVE_BIN] LifeSign %s Size: %u\n", message.c_str(), length);
+
+            delay(1000);
+            Set3StateLed(false, true, false);
+        }
+        else
+        {
+            hexdump(payload, length);
+            USE_SERIAL.printf("[RECEIVE_BIN] %s Size: %u\n", message.c_str(), length);
+            HandleMessage(message);
+        }
+    }
+        // send data to server
+        // webSocket.sendBIN(payload, length);
+        break;
+        /*        case WStype_PING:
+                    // pong will be send automatically
+                    USE_SERIAL.printf("[WSc] get ping\n");
+                    break;
+                case WStype_PONG:
+                    // answer to a ping we send
+                    USE_SERIAL.printf("[WSc] get pong\n");
+                    break;
+            }*/
+    }
+}
+
+void setup()
+{
+
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, HIGH);
+
+    pinMode(D6, OUTPUT);
+    pinMode(D7, OUTPUT);
+    pinMode(D8, OUTPUT);
+        
+    Set3StateLed(false, false, false);
+    
+    USE_SERIAL.begin(115200);
+
+    USE_SERIAL.setDebugOutput(true);
+
+    USE_SERIAL.println();
+    USE_SERIAL.println();
+    USE_SERIAL.println();
+
+    for (uint8_t t = 4; t > 0; t--) {
+        USE_SERIAL.printf("[SETUP] BOOT WAIT %d...\n", t);
+        USE_SERIAL.flush();
+        delay(1000);
+    }
+    
+    Set3StateLed(true, false, false);
+    
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+    
+    while (WiFi.status() != WL_CONNECTED)
+    {
+        delay(500);
+        USE_SERIAL.printf(".");
+    }
+
+    Set3StateLed(false, false, true);
+    USE_SERIAL.println("\n[SETUP] Start WebSocket");
+       
+    // Server address, port and URL
+    webSocket.begin("192.168.0.98", 11044, "/AimbDeviceServer", "");
+    
+    // event handler
+    webSocket.onEvent(webSocketEvent);
+    webSocket.setReconnectInterval(10000);
+
+    USE_SERIAL.printf("[SETUP] Wait for connection");
+
+    while (!isConnected)
+    {
+       delay(100);
+       webSocket.loop();
+       USE_SERIAL.printf(".");
+    }
+    Set3StateLed(false, true, false);
+    USE_SERIAL.printf("\n[SETUP] Connected\n");
+}
+
+void loop()
+{
+    if (webSocket.isConnected())
+    {
+        const uint64_t now = millis();
+
+        if (now - messageTimestamp > MESSAGE_INTERVAL) 
+        {
+            messageTimestamp = now;
+        
+            SendString("$BCUNIINT,0," + String(random(1024)) + ",t");
+        }
+        if ((now - heartbeatTimestamp) > HEARTBEAT_INTERVAL) 
+        {
+            Set3StateLed(true, true, false);
+            
+            heartbeatTimestamp = now;
+            //USE_SERIAL.printf("heartbeat\n");
+            SendString("$BCLIFESIGN,0,2020-10-31 18:22:47");
+
+            delay(200);
+            Set3StateLed(false, true, false);
+        }
+    }
+    else
+    {
+        USE_SERIAL.printf("not connected\n");
+        delay(10000);
+    }
+    webSocket.loop();
+}
+
+void SendBuffer(String text)
+{
+    String message = text;
+    message += "*";
+    message += CreateCheckSumHex(text);
+    message += "1234567890";
+    uint8_t plain[100];
+    text.getBytes(plain, message.length()+1, 0);
+    webSocket.sendBIN(plain, message.length()+1);
+    USE_SERIAL.printf("[SEND]: \"%s\" %i\n", message.c_str(), message.length());
+}
+
+void SendString(String text)
+{
+    String message = text;
+    message += "*";
+    message += CreateCheckSumHex(text);
+    webSocket.sendTXT(message);
+    USE_SERIAL.printf("[SEND]: \"%s\" %i\n", message.c_str(), message.length());
+}
+
+/// <summary>
+/// Creates the check sum for NMEA sentence.
+/// </summary>
+/// <param name="nmeaSentence">The NMEA sentence.</param>
+/// <returns>int.</returns>
+int CreateCheckSum(String nmeaSentence)
+{
+    int i;
+    int iXOR;
+    int c;
+    // Calculate checksum ignoring any $'s in the string
+    for (iXOR = 0, i = 0; i < strlen(nmeaSentence.c_str()); i++)
+    {
+        c = static_cast<unsigned char>(nmeaSentence[i]);
+        if (c == '*') break;
+        if (c != '$') iXOR ^= c;
+    }
+    return iXOR;
+}
+
+/// <summary>
+/// Creates checks sum an convert to hexadecimal value.
+/// </summary>
+/// <param name="nmeaSentence">The nmea sentence.</param>
+/// <returns>String.</returns>
+String CreateCheckSumHex(String nmeaSentence)
+{
+    String result = "";
+    char tmp1[10];
+    sprintf(tmp1, "%X", CreateCheckSum(nmeaSentence));
+    result += tmp1;
+    return result;
+}
+
+/// <summary>
+/// Set3s the state led.
+/// </summary>
+/// <param name="red">The red.</param>
+/// <param name="green">The green.</param>
+/// <param name="blue">The blue.</param>
+void Set3StateLed(bool red, bool green, bool blue)
+{
+    // Red
+    if (red)
+        digitalWrite(D6, HIGH);
+    else
+        digitalWrite(D6, LOW);
+
+    // Green
+    if (green)
+        digitalWrite(D7, HIGH);
+    else
+        digitalWrite(D7, LOW);
+
+    // Blue
+    if (blue)
+        digitalWrite(D8, HIGH);
+    else
+        digitalWrite(D8, LOW);
+}
+
+/// <summary>
+/// Handles the message.
+/// </summary>
+/// <param name="message">The message.</param>
+void HandleMessage(String message)
+{
+    Set3StateLed(true, true, true);
+
+    
+    Set3StateLed(false, true, false);
+}

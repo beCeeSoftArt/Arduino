@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32414.318
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ESP_WebSocket_01", "ESP_WebSocket_01.vcxproj", "{5F423F62-BF39-4E91-A0E4-D2D04D649C18}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ESP8266-Websocket-master-0.0.0", "Libraries\ESP8266-Websocket-master\0.0.0\ESP8266-Websocket-master\ESP8266-Websocket-master-0.0.0.vcxitems", "{7BA2F7B9-7167-444A-919A-CD0445A761BC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ESP8266WiFi-1.0", "Libraries\ESP8266WiFi\1.0\ESP8266WiFi\ESP8266WiFi-1.0.vcxitems", "{41CF025D-CCE4-4A8E-84E5-9B788524E547}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Libraries\ESP8266WiFi\1.0\ESP8266WiFi\ESP8266WiFi-1.0.vcxitems*{41cf025d-cce4-4a8e-84e5-9b788524e547}*SharedItemsImports = 9
+		Libraries\ESP8266-Websocket-master\0.0.0\ESP8266-Websocket-master\ESP8266-Websocket-master-0.0.0.vcxitems*{5f423f62-bf39-4e91-a0e4-d2d04d649c18}*SharedItemsImports = 4
+		Libraries\ESP8266WiFi\1.0\ESP8266WiFi\ESP8266WiFi-1.0.vcxitems*{5f423f62-bf39-4e91-a0e4-d2d04d649c18}*SharedItemsImports = 4
+		Libraries\ESP8266-Websocket-master\0.0.0\ESP8266-Websocket-master\ESP8266-Websocket-master-0.0.0.vcxitems*{7ba2f7b9-7167-444a-919a-cd0445a761bc}*SharedItemsImports = 9
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5F423F62-BF39-4E91-A0E4-D2D04D649C18}.Debug|x86.ActiveCfg = Debug|Win32
+		{5F423F62-BF39-4E91-A0E4-D2D04D649C18}.Debug|x86.Build.0 = Debug|Win32
+		{5F423F62-BF39-4E91-A0E4-D2D04D649C18}.Release|x86.ActiveCfg = Release|Win32
+		{5F423F62-BF39-4E91-A0E4-D2D04D649C18}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0CF784E2-B7D3-49F0-8CD3-F19F36B50EBB}
+	EndGlobalSection
+EndGlobal

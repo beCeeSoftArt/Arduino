@@ -1,0 +1,547 @@
+/**
+   Remote sensor data sender 
+   - uses SSL, HTTPS over Wifi
+*/
+
+//#include <DHT_U.h>
+//#include <Wire.h>
+//#include <Adafruit_BMP085.h>
+//#include <dht.h>
+
+#include <WiFiServerSecureBearSSL.h>
+#include <WiFiServer.h>
+#include <WiFiClient.h>
+#include <ESP8266WiFiType.h>
+#include <ESP8266WiFiSTA.h>
+#include <ESP8266WiFiGratuitous.h>
+#include <ESP8266WiFiGeneric.h>
+#include "AimbSensors.h"
+#include <Arduino.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266WiFiMulti.h>
+#include <ESP8266HTTPClient.h>
+#include <WiFiClientSecureBearSSL.h>
+
+// WiFi access data
+#define SSID "KuntuZangpo"
+#define PASS "81673434845370142598"
+
+// 
+IPAddress local_IP(192, 168, 178, 177);
+// Set Gateway IP address
+IPAddress gateway(192, 168, 178, 1);
+
+// Set Subnet mask
+IPAddress subnet(255, 255, 255, 0);
+// Set primary DNS IP address
+IPAddress primaryDNS(192, 168, 178, 1);   //optional
+// Set secondary DNS IP address
+IPAddress secondaryDNS(8, 8, 4, 4); //optional
+
+// SHA1 fingerprint of SSL server certificate
+const uint8_t fingerprint[20] = { 0x96, 0xC6, 0x8A, 0x2E, 0xD7, 0xC8, 0x18, 0x36, 0xBC, 0xE1, 0x24, 0x38, 0x08, 0x22, 0xF8, 0xA7, 0x18, 0x6B, 0x87, 0xE9 };
+ 
+// WiFi helper
+ESP8266WiFiMulti WiFiMulti;
+
+// Is use SSL connection (TLS1.2)
+bool IsUseSsl;
+// Device identifier
+String DeviceId;
+
+// Server URI 
+String ServerUriBase = String("https://AURORA-R10:11022/TEST/index.html?aimbid=");
+
+// Pause between measurements
+int DelayBetweenTransmissions = 10;
+
+// Function for creating device id by MAC address
+String MacAddressToDeviceId();
+// Complete server uri with parameters
+String CompleteServerUri();
+// WiFi state
+String GetWifiStateAsText(wl_status_t wifiStatus);
+// Http server status response code
+String GetHttpCodeAsText(t_http_codes httpCode);
+// Send the data over HTTP in plain text without encryption
+void SendDataOverHttp();
+// Send data with SSL encryption
+void SendDataOverHttps();
+
+// Initialize 
+void setup()
+{
+	Serial.begin(115200);
+
+	pinMode(LED_BUILTIN, OUTPUT);
+	digitalWrite(LED_BUILTIN, HIGH);
+	
+	// Determine is Ssl or not
+	if (ServerUriBase.length() > 4)
+	{
+		if (ServerUriBase[4] == 's')
+			IsUseSsl = true;
+		/*if (ServerUriBase[4] == 'S')
+			IsUseSsl = true;*/
+	}
+	   
+	for (uint8_t t = 10; t > 0; t--)
+	{
+		Serial.printf("[SETUP] WAIT %d...\n", t);
+		Serial.flush();
+		delay(1000);
+	}
+
+	// Enable AIMB sensors
+	AimbSensors.EnableDHT22(true);
+	AimbSensors.EnableBMP085(true);
+	AimbSensors.EnableDSM501A(true);
+	AimbSensors.EnableMG811(true);
+	
+	// Initialize AIMB sensors
+	AimbSensors.InitDHT22();
+	AimbSensors.InitBMP085();
+	AimbSensors.InitDSM501A();
+	AimbSensors.InitMG811();
+
+	// Configures static IP address, gateway, subnet, primary DNS, secondary DNS
+	if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) 
+	{
+		// Something went wrong
+		Serial.println("STA Failed to configure");
+	}
+
+	// Connect WiFi
+	WiFi.mode(WIFI_STA);    
+	WiFiMulti.addAP(SSID, PASS);
+
+	// Create device id
+	DeviceId = MacAddressToDeviceId();
+	
+	Serial.printf("[SETUP] Device Id: %s...\n", DeviceId.c_str());   
+	Serial.printf("[SETUP] Uri: \"%s\"\n", CompleteServerUri().c_str());
+	Serial.printf("[SETUP] Connected to: \"%s\", IP: %s\n", SSID, WiFi.localIP().toString().c_str());
+	Serial.printf("\n");
+
+	digitalWrite(LED_BUILTIN, LOW);
+	delay(200);    
+}
+
+// Main loop 
+void loop()
+{
+	AimbSensors.UpdateDsm501aData();
+
+	// Check WiFi connection state
+	const wl_status_t wifiStatus = WiFiMulti.run();
+	if (wifiStatus == WL_CONNECTED)
+	{
+		if (IsUseSsl)
+			SendDataOverHttps();
+		else
+			SendDataOverHttp();       
+	}
+	else
+	{
+		Serial.printf(
+			"[SETUP] WiFi not available. State: %s\n", 
+			GetWifiStateAsText(wifiStatus).c_str());
+	}
+
+	// Pause before next data send
+	Serial.print("[PAUSE]");// Wait 10s before next send ");
+	for (int pauseIndex = 0; pauseIndex < DelayBetweenTransmissions; pauseIndex++)
+	{
+		AimbSensors.UpdateDsm501aData();
+		Serial.print("*");
+		delay(1000);
+	}
+	Serial.printf("\n");
+}
+
+/// <summary>
+/// Sends the data over HTTP.
+/// </summary>
+void SendDataOverHttp()
+{
+	WiFiClient client;
+	HTTPClient http;
+
+	Serial.printf("[HTTP] Begin connect to \"%s\"...\n", CompleteServerUri().c_str());
+
+	if (http.begin(client, CompleteServerUri().c_str()))
+	{
+		String sentences = AimbSensors.GetDht22Data(1, 14);
+		sentences += AimbSensors.GetBmp085Data(2);
+		sentences += AimbSensors.GetDsm501aData(3);
+		sentences += AimbSensors.GetMg811(4);
+
+		Serial.printf("[HTTP] POST %s\n", CompleteServerUri().c_str());
+		Serial.printf("[DATA_START]\n%s[DATA_END]\n", sentences.c_str());
+
+		// Start connection and send HTTP header
+		const auto responseCode = http.POST(sentences.c_str());
+
+		// responseCode will be negative on error
+		if (responseCode > 0)
+		{
+			// HTTP header has been send and Server response header has been handled
+			Serial.printf("[HTTP] POST OK; Http Code: %d\n", responseCode);
+
+			// File found at server
+			if (responseCode == HTTP_CODE_OK
+				|| responseCode == HTTP_CODE_MOVED_PERMANENTLY)
+			{
+				auto payLoad = http.getString();
+				// Display received data from server
+				Serial.println(payLoad);
+			}
+			else
+			{
+				Serial.printf("[HTTP] POST failed. Http Code: %d (%s)\n", responseCode, GetHttpCodeAsText(responseCode).c_str());
+			}
+		}
+		else
+		{
+			// POST failed
+			Serial.printf(
+				"[HTTP] POST failed, Error: %s(Http Code: %i)\n",
+				GetHttpCodeAsText(responseCode).c_str(),
+				responseCode);
+		}
+	}
+	else
+	{
+		// Can not connect
+		Serial.printf(
+			"[HTTPS] Unable to connect to \"%s\"\n",
+			CompleteServerUri().c_str());
+	}
+
+	// Close connection to server
+	http.end();
+}
+
+/// <summary>
+/// Sends the data over HTTPS.
+/// </summary>
+void SendDataOverHttps()
+{
+	const std::unique_ptr<BearSSL::WiFiClientSecure>client(new BearSSL::WiFiClientSecure);
+	HTTPClient https;
+	
+	client->allowSelfSignedCerts();
+	client->setInsecure();
+	//client->setFingerprint(fingerprint);
+	//client->verify();
+		
+	Serial.printf("[HTTPS] Begin connect to \"%s\"...\n", CompleteServerUri().c_str());
+
+	if (https.begin(*client, CompleteServerUri().c_str()))
+	{    	
+		char sslErrorText1[100];
+		const auto lastError1 = client->getLastSSLError(sslErrorText1, sizeof(sslErrorText1));
+		Serial.printf("[HTTPS] SSL Error Code: %i, %s\n", lastError1, sslErrorText1);
+
+		String sentences = "";
+		sentences += AimbSensors.GetDht22Data(1, 14);
+		sentences += AimbSensors.GetBmp085Data(2);
+		sentences += AimbSensors.GetDsm501aData(3);
+		sentences += AimbSensors.GetMg811(4);
+
+		Serial.printf("[HTTPS] POST %s\n", CompleteServerUri().c_str());
+		Serial.printf("[DATA_START]\n%s[DATA_END]\n", sentences.c_str());
+
+		// Start connection and send HTTP header
+		const auto responseCode = https.POST(sentences);
+		
+		// responseCode will be negative on error
+		if (responseCode > 0)
+		{
+			// HTTP header has been send and Server response header has been handled
+			Serial.printf("[HTTPS] POST OK; Http Code: %d\n", responseCode);
+
+			// File found at server
+			if (responseCode == HTTP_CODE_OK
+				|| responseCode == HTTP_CODE_MOVED_PERMANENTLY)
+			{
+				auto payLoad = https.getString();
+				// Display received data from server
+				Serial.println(payLoad);
+			}
+			else
+			{
+				Serial.printf("[HTTP] POST failed. Http Code: %d (%s)\n", responseCode, GetHttpCodeAsText(responseCode).c_str());
+			}
+		}
+		else
+		{            
+			// POST failed
+			Serial.printf(
+				"[HTTPS] POST failed, Error: %s(Http Code: %i)\n",
+				GetHttpCodeAsText(responseCode).c_str(),
+				responseCode);
+						
+			char sslErrorText[100];
+			const auto lastError = client->getLastSSLError(sslErrorText, sizeof(sslErrorText));
+			Serial.printf("[HTTPS] SSL Error Code: %i, %s\n", lastError, sslErrorText);
+		}
+		https.end();
+	}
+	else
+	{
+		// Can not connect
+		Serial.printf(
+			"[HTTPS] Unable to connect to \"%s\"\n",
+			CompleteServerUri().c_str());
+	}
+
+	//// Close connection to server
+	//https.end();
+}
+
+String MacAddressToDeviceId()
+{
+	String id;
+	uint8_t macAddress[6];
+
+	WiFi.macAddress(macAddress);
+   
+	String macAddressId;
+	for (int i = 3; i < 6; ++i) 
+	{
+		macAddressId += String(macAddress[i], 16);
+	}
+	macAddressId.toUpperCase();
+	id = macAddressId;
+
+	String hostName = "AIMB_ESP_" + id;
+	return hostName;
+}
+
+/// <summary>
+/// Completes the server URI.
+/// </summary>
+/// <returns>String.</returns>
+String CompleteServerUri()
+{
+	return String(ServerUriBase + DeviceId);
+}
+
+/// <summary>
+/// Gets the wifi state as text.
+/// </summary>
+/// <param name="wifiStatus">The wifi status.</param>
+/// <returns>String.</returns>
+String GetWifiStateAsText(wl_status_t wifiStatus)
+{
+	switch (wifiStatus)
+	{
+	case WL_NO_SHIELD:
+		return String("WiFi shield not connected or enabled.");
+	case WL_IDLE_STATUS:
+		return String("WiFi is in idle state.");
+	case WL_NO_SSID_AVAIL:
+		return String("No SSID not available.");
+	case WL_SCAN_COMPLETED:
+		return String("WiFi scan complete.");
+	case WL_CONNECTED:
+		return String("Connected to WiFi.");
+	case WL_CONNECT_FAILED:
+		return String("Connect to WiFi failed. (e.g. wrong pass phrase, access for MAC not configured)");
+	case WL_CONNECTION_LOST:
+		return String("Wifi connection is lost.");
+	case WL_DISCONNECTED:
+		return String("Wifi is in disconnected state.");
+	default:  
+		return String("Undocumented or unknown state.");
+	}	
+}
+
+/// <summary>
+/// Gets the HTTP code as text.
+/// </summary>
+/// <param name="httpCode">The HTTP code.</param>
+/// <returns>String.</returns>
+String GetHttpCodeAsText(int httpCode)
+{
+	switch (httpCode)
+	{
+	case HTTP_CODE_CONTINUE:
+		// Code 100,
+		return "HTTP_CODE_CONTINUE";
+	case HTTP_CODE_SWITCHING_PROTOCOLS:
+		// Code 101,
+		return "HTTP_CODE_SWITCHING_PROTOCOLS";
+	case HTTP_CODE_PROCESSING:
+		// Code 102,
+		return "HTTP_CODE_PROCESSING";
+	case HTTP_CODE_OK:
+		// Code 200,
+		return "HTTP_CODE_OK";
+	case HTTP_CODE_CREATED:
+		// Code 201,
+		return "HTTP_CODE_CREATED";
+	case HTTP_CODE_ACCEPTED:
+		// Code 202,
+		return "HTTP_CODE_ACCEPTED";
+	case HTTP_CODE_NON_AUTHORITATIVE_INFORMATION:
+		// Code 203,
+		return "HTTP_CODE_NON_AUTHORITATIVE_INFORMATION";
+	case HTTP_CODE_NO_CONTENT:
+		// Code 204,
+		return "HTTP_CODE_NO_CONTENT";
+	case HTTP_CODE_RESET_CONTENT:
+		// Code 205,
+		return "HTTP_CODE_RESET_CONTENT";
+	case HTTP_CODE_PARTIAL_CONTENT:
+		// Code 206,
+		return "HTTP_CODE_PARTIAL_CONTENT";
+	case HTTP_CODE_MULTI_STATUS:
+		// Code 207,
+		return "HTTP_CODE_MULTI_STATUS";
+	case HTTP_CODE_ALREADY_REPORTED:
+		// Code 208,
+		return "HTTP_CODE_ALREADY_REPORTED";
+	case HTTP_CODE_IM_USED:
+		// Code 226,
+		return "HTTP_CODE_IM_USED";
+	case HTTP_CODE_MULTIPLE_CHOICES:
+		// Code 300,
+		return "HTTP_CODE_MULTIPLE_CHOICES";
+	case HTTP_CODE_MOVED_PERMANENTLY:
+		// Code 301,
+		return "HTTP_CODE_MOVED_PERMANENTLY";
+	case HTTP_CODE_FOUND:
+		// Code 302,
+		return "HTTP_CODE_FOUND";
+	case HTTP_CODE_SEE_OTHER:
+		// Code 303,
+		return "HTTP_CODE_SEE_OTHER";
+	case HTTP_CODE_NOT_MODIFIED:
+		// Code 304,
+		return "HTTP_CODE_NOT_MODIFIED";
+	case HTTP_CODE_USE_PROXY:
+		// Code 305,
+		return "HTTP_CODE_USE_PROXY";
+	case HTTP_CODE_TEMPORARY_REDIRECT:
+		// Code 307,
+		return "HTTP_CODE_TEMPORARY_REDIRECT";
+	case HTTP_CODE_PERMANENT_REDIRECT:
+		// Code 308,
+		return "HTTP_CODE_PERMANENT_REDIRECT";
+	case HTTP_CODE_BAD_REQUEST:
+		// Code 400,
+		return "HTTP_CODE_BAD_REQUEST";
+	case HTTP_CODE_UNAUTHORIZED:
+		// Code 401,
+		return "HTTP_CODE_UNAUTHORIZED";
+	case HTTP_CODE_PAYMENT_REQUIRED:
+		// Code 402,
+		return "HTTP_CODE_PAYMENT_REQUIRED";
+	case HTTP_CODE_FORBIDDEN:
+		// Code 403,
+		return "HTTP_CODE_FORBIDDEN";
+	case HTTP_CODE_NOT_FOUND:
+		// Code 404,
+		return "HTTP_CODE_NOT_FOUND";
+	case HTTP_CODE_METHOD_NOT_ALLOWED:
+		// Code 405,
+		return "HTTP_CODE_METHOD_NOT_ALLOWED";
+	case HTTP_CODE_NOT_ACCEPTABLE:
+		// Code 406,
+		return "HTTP_CODE_NOT_ACCEPTABLE";
+	case HTTP_CODE_PROXY_AUTHENTICATION_REQUIRED:
+		// Code 407,
+		return "HTTP_CODE_PROXY_AUTHENTICATION_REQUIRED";
+	case HTTP_CODE_REQUEST_TIMEOUT:
+		// Code 408,
+		return "HTTP_CODE_REQUEST_TIMEOUT";
+	case HTTP_CODE_CONFLICT:
+		// Code 409,
+		return "HTTP_CODE_CONFLICT";
+	case HTTP_CODE_GONE:
+		// Code 410,
+		return "HTTP_CODE_GONE";
+	case HTTP_CODE_LENGTH_REQUIRED:
+		// Code 411,
+		return "HTTP_CODE_LENGTH_REQUIRED";
+	case HTTP_CODE_PRECONDITION_FAILED:
+		// Code 412,
+		return "HTTP_CODE_PRECONDITION_FAILED";
+	case HTTP_CODE_PAYLOAD_TOO_LARGE:
+		// Code 413,
+		return "HTTP_CODE_PAYLOAD_TOO_LARGE";
+	case HTTP_CODE_URI_TOO_LONG:
+		// Code 414,
+		return "HTTP_CODE_URI_TOO_LONG";
+	case HTTP_CODE_UNSUPPORTED_MEDIA_TYPE:
+		// Code 415,
+		return "HTTP_CODE_UNSUPPORTED_MEDIA_TYPE";
+	case HTTP_CODE_RANGE_NOT_SATISFIABLE:
+		// Code 416,
+		return "HTTP_CODE_RANGE_NOT_SATISFIABLE";
+	case HTTP_CODE_EXPECTATION_FAILED:
+		// Code 417,
+		return "HTTP_CODE_EXPECTATION_FAILED";
+	case HTTP_CODE_MISDIRECTED_REQUEST:
+		// Code 421,
+		return "HTTP_CODE_MISDIRECTED_REQUEST";
+	case HTTP_CODE_UNPROCESSABLE_ENTITY:
+		// Code 422,
+		return "HTTP_CODE_UNPROCESSABLE_ENTITY";
+	case HTTP_CODE_LOCKED:
+		// Code 423,
+		return "HTTP_CODE_LOCKED";
+	case HTTP_CODE_FAILED_DEPENDENCY:
+		// Code 424,
+		return "HTTP_CODE_FAILED_DEPENDENCY";
+	case HTTP_CODE_UPGRADE_REQUIRED:
+		// Code 426,
+		return "HTTP_CODE_UPGRADE_REQUIRED";
+	case HTTP_CODE_PRECONDITION_REQUIRED:
+		// Code 428,
+		return "HTTP_CODE_PRECONDITION_REQUIRED";
+	case HTTP_CODE_TOO_MANY_REQUESTS:
+		// Code 429,
+		return "HTTP_CODE_TOO_MANY_REQUESTS";
+	case HTTP_CODE_REQUEST_HEADER_FIELDS_TOO_LARGE:
+		// Code 431,
+		return "HTTP_CODE_REQUEST_HEADER_FIELDS_TOO_LARGE";
+	case HTTP_CODE_INTERNAL_SERVER_ERROR:
+		// Code 500,
+		return "HTTP_CODE_INTERNAL_SERVER_ERROR";
+	case HTTP_CODE_NOT_IMPLEMENTED:
+		// Code 501,
+		return "HTTP_CODE_NOT_IMPLEMENTED";
+	case HTTP_CODE_BAD_GATEWAY:
+		// Code 502,
+		return "HTTP_CODE_BAD_GATEWAY";
+	case HTTP_CODE_SERVICE_UNAVAILABLE:
+		// Code 503,
+		return "HTTP_CODE_SERVICE_UNAVAILABLE";
+	case HTTP_CODE_GATEWAY_TIMEOUT:
+		// Code 504,
+		return "HTTP_CODE_GATEWAY_TIMEOUT";
+	case HTTP_CODE_HTTP_VERSION_NOT_SUPPORTED:
+		// Code 505,
+		return "HTTP_CODE_HTTP_VERSION_NOT_SUPPORTED";
+	case HTTP_CODE_VARIANT_ALSO_NEGOTIATES:
+		// Code 506,
+		return "HTTP_CODE_VARIANT_ALSO_NEGOTIATES";
+	case HTTP_CODE_INSUFFICIENT_STORAGE:
+		// Code 507,
+		return "HTTP_CODE_INSUFFICIENT_STORAGE";
+	case HTTP_CODE_LOOP_DETECTED:
+		// Code 508,
+		return "HTTP_CODE_LOOP_DETECTED";
+	case HTTP_CODE_NOT_EXTENDED:
+		// Code 510,
+		return "HTTP_CODE_NOT_EXTENDED";
+	case HTTP_CODE_NETWORK_AUTHENTICATION_REQUIRED:
+		// Code 511
+		return "HTTP_CODE_NETWORK_AUTHENTICATION_REQUIRED";
+	default:
+		return String("Undocumented or unknown http state.");
+	}
+}
