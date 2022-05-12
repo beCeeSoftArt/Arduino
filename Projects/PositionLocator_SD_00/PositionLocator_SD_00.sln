@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32421.90
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PositionLocator_SD_00", "PositionLocator_SD_00.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TinyGPSPlus-1.0.3", "Libraries\TinyGPSPlus\1.0.3\TinyGPSPlus\TinyGPSPlus-1.0.3.vcxitems", "{E53E30DA-F66E-4AD6-B023-57A9ADCF1324}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SoftwareSerial-1.0", "Libraries\SoftwareSerial\1.0\SoftwareSerial\SoftwareSerial-1.0.vcxitems", "{830C0AB6-EB2A-4C08-ACF7-09FC71FB4CCA}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Libraries\SoftwareSerial\1.0\SoftwareSerial\SoftwareSerial-1.0.vcxitems*{830c0ab6-eb2a-4c08-acf7-09fc71fb4cca}*SharedItemsImports = 9
+		Libraries\SoftwareSerial\1.0\SoftwareSerial\SoftwareSerial-1.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		Libraries\TinyGPSPlus\1.0.3\TinyGPSPlus\TinyGPSPlus-1.0.3.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		Libraries\TinyGPSPlus\1.0.3\TinyGPSPlus\TinyGPSPlus-1.0.3.vcxitems*{e53e30da-f66e-4ad6-b023-57a9adcf1324}*SharedItemsImports = 9
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.ActiveCfg = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.Build.0 = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.ActiveCfg = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {76FEE4ED-423A-47F5-8992-E6A882CA1D40}
+	EndGlobalSection
+EndGlobal
